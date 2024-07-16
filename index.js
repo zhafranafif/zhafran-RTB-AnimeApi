@@ -8,7 +8,7 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 // Import Route
-const country = require('./server/api/country');
+const anime = require('./server/api/anime');
 
 // Middleware
 dotenv.config();
@@ -19,7 +19,7 @@ app.use((req, res, next) => {
   const oldSend = res.send;
   res.send = async (data) => {
     res.send = oldSend; // set function back to avoid the 'double-send'
-    const response = await CommonHelper.unifyResponse(req, res, data);
+    const response = CommonHelper.unifyResponse(req, res, data);
 
     // Log Transaction
     const logData = CommonHelper.logRequest(req, response);
@@ -32,14 +32,14 @@ app.use((req, res, next) => {
 });
 
 // Route middlewares
-app.use('/country', country);
+app.use('/api/v1/anime', anime);
 
 app.get('/sys/ping', (req, res) => {
   req.startTime = process.hrtime();
   res.send('ok');
 });
 
-app.get('*', (req, res) => {
+app.all('*', (req, res) => {
   res.status(404).send(Boom.notFound('No route matched with those values', {}));
 });
 

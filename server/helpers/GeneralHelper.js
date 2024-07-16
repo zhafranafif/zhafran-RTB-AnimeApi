@@ -1,18 +1,19 @@
 const Fs = require('fs');
+const JSONStream = require('JSONStream');
 
-const readFromFile = (file, raw = false) =>
+const readLargeFile = (file, filterElement = '*') =>
   new Promise((resolve, reject) => {
-    Fs.readFile(file, (err, content) => {
-      if (err) {
-        return reject(err);
-      }
+    const stream = Fs.createReadStream(file);
+    const parser = JSONStream.parse(filterElement);
 
-      if (raw === false) {
-        return resolve(JSON.parse(content));
-      }
+    stream.on('error', reject);
+    parser.on('error', reject);
 
-      return resolve(content);
-    });
+    const data = [];
+    parser.on('data', (chunk) => data.push(chunk));
+    parser.on('end', () => resolve(data));
+
+    stream.pipe(parser);
   });
 
-module.exports = { readFromFile };
+module.exports = { readLargeFile };

@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const Fs = require('fs');
 const Moment = require('moment');
 const _ = require('lodash');
 const Pino = require('pino')({
@@ -36,7 +37,7 @@ const logRequest = (req, res) => {
   return logData;
 };
 
-const unifyResponse = async (request, response, body) => {
+const unifyResponse = (request, response, body) => {
   try {
     const statusCode = body?.output?.statusCode || response.statusCode;
     const transactionId = request.headers.transactionid;
@@ -48,7 +49,7 @@ const unifyResponse = async (request, response, body) => {
     };
 
     // * Get error state from boom
-    if (body?.isBoom) {
+    if (body.isBoom) {
       newResponse.status = body.output.statusCode;
       newResponse.message = body.output.payload.message;
       newResponse.error = body.output.payload.error;
@@ -58,15 +59,15 @@ const unifyResponse = async (request, response, body) => {
     // add transaction id
     newResponse.transaction_id = transactionId;
 
-    return Promise.resolve({
+    return {
       statusCode,
       bodyResponse: newResponse
-    });
+    };
   } catch (err) {
-    return Promise.resolve({
+    return {
       statusCode: 500,
       bodyResponse: 'Something went wrong'
-    });
+    };
   }
 };
 
@@ -101,11 +102,7 @@ const errorResponse = (error) => {
 };
 
 const __createTransactionId = () => {
-  /* TransactionId has 4 components as per break-down below
-   * ApplicationId + Timestamp + Last 5 digits of MSISDN + Changeable Digit
-   * A301/A302 + 151216125801799 + 12345 + 0
-   */
-  const appId = 'A3P2';
+  const appId = 'A302';
   const timeStamp = Moment().format('YYMMDDHHmmssSSS');
   const changeableDigit = '0';
 
@@ -121,4 +118,19 @@ const preHandler = async (request, reply, next) => {
   next();
 };
 
-module.exports = { log, logRequest, unifyResponse, errorResponse, preHandler };
+const readFromFile = (file, raw = false) =>
+  new Promise((resolve, reject) => {
+    Fs.readFile(file, (err, content) => {
+      if (err) {
+        return reject(err);
+      }
+
+      if (raw === false) {
+        return resolve(JSON.parse(content));
+      }
+
+      return resolve(content);
+    });
+  });
+
+module.exports = { log, logRequest, unifyResponse, errorResponse, preHandler, readFromFile };
