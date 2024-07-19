@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "NODE_ENV=test jest --coverage=true --detectOpenHandles --forceExit"
+    "test": "cross-env NODE_ENV=test jest --coverage=true --detectOpenHandles --forceExit"
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +27,7 @@
     "@types/eslint": "^8.56.10",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
+    "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.1.0",
